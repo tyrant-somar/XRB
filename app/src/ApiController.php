@@ -3,6 +3,7 @@
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Core\Environment;
 use PhpOffice\PhpWord\IOFactory;
 use Smalot\PdfParser\Parser;
 
@@ -19,51 +20,38 @@ class ApiController extends Controller {
     public function process(HTTPRequest $request) {
 
         if (!$request->isPOST()) {
-
             return $this->httpError(405);
-
         }
 
-        // Get uploaded file
+        // Get uploaded file from $_FILES
+        $file = $_FILES['file'] ?? null;
 
-        $file = $request->getFile('file');
-
-        if (!$file) {
-
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             return $this->httpError(400, 'No file uploaded');
-
         }
 
         // Read internal docx
-
         $internalDocxPath = BASE_PATH . '/assets/docs/XRB AI Prompt_Rules and Examples.docx';
-
         $internalText = $this->extractTextFromDocx($internalDocxPath);
 
         // Extract text from uploaded file
-
-        $tempPath = $file->getTempName();
-
-        $userText = $this->extractTextFromUploadedFile($tempPath, $file->getExtension());
+        $tempPath = $file['tmp_name'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $userText = $this->extractTextFromUploadedFile($tempPath, $ext);
 
         // Combine prompts
-
         $prompt = $internalText . "\n\n" . $userText;
 
         // Call Gemini API
-
-        $apiKey = getenv('GEMINI_API_KEY');
+        $apiKey = Environment::getEnv('GEMINI_API_KEY');
 
         if (!$apiKey) {
-
             return $this->httpError(500, 'API key not set');
-
         }
 
         $response = $this->callGeminiAPI($prompt, $apiKey);
 
         // Return JSON
-
         $httpResponse = new HTTPResponse();
 
         $httpResponse->setBody($response);
@@ -159,7 +147,7 @@ class ApiController extends Controller {
 
     private function callGeminiAPI($prompt, $apiKey) {
 
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
 
         $data = [
 
@@ -194,8 +182,6 @@ class ApiController extends Controller {
         ]);
 
         $response = curl_exec($ch);
-
-        curl_close($ch);
 
         return $response;
 
