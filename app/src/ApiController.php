@@ -13,7 +13,9 @@ class ApiController extends Controller {
 
         'process',
 
-        'internal'
+        'internal',
+
+        'download'
 
     ];
 
@@ -60,6 +62,24 @@ class ApiController extends Controller {
 
         return $httpResponse;
 
+    }
+
+    public function download(HTTPRequest $request) {
+        $path = BASE_PATH . '/assets/docs/XRB AI Prompt_Rules and Examples.docx';
+
+        if (!file_exists($path)) {
+            return $this->httpError(404, 'File not found');
+        }
+
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Disposition: attachment; filename="XRB AI Prompt_Rules and Examples.docx"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
     }
 
     public function internal(HTTPRequest $request) {
