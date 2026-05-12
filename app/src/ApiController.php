@@ -1,13 +1,9 @@
 <?php
 
 use SilverStripe\Control\Controller;
-
 use SilverStripe\Control\HTTPRequest;
-
 use SilverStripe\Control\HTTPResponse;
-
 use PhpOffice\PhpWord\IOFactory;
-
 use Smalot\PdfParser\Parser;
 
 class ApiController extends Controller {
@@ -79,7 +75,6 @@ class ApiController extends Controller {
     }
 
     public function internal(HTTPRequest $request) {
-
         $internalDocxPath = BASE_PATH . '/assets/docs/XRB AI Prompt_Rules and Examples.docx';
 
         $text = $this->extractTextFromDocx($internalDocxPath);

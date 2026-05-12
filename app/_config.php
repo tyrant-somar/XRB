@@ -1,3 +1,2 @@
 <?php
-
-// No CMS site tree needed - this is an API-only app
+// Routes are defined in app/_config/routes.yml
