@@ -1,7 +1,7 @@
 <?php
 
-use SilverStripe\CMS\Controllers\ModelAsController;
+use SilverStripe\CMS\Controllers\ContentController;
 
-class PageController extends ModelAsController {
+class PageController extends ContentController {
 
 }
