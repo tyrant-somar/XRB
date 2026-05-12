@@ -1,12 +1,80 @@
 <template>
   <div id="app">
-    <h1>Hello Vue!</h1>
+    <h1>Accountancy Rules Processor</h1>
+    <textarea v-model="internalText" readonly></textarea>
+    <form @submit.prevent="submitForm">
+      <input type="file" @change="onFileChange" accept=".txt,.docx,.pdf" required>
+      <button type="submit">Submit</button>
+    </form>
+    <div v-if="rawJson">
+      <h2>Raw JSON</h2>
+      <pre>{{ rawJson }}</pre>
+    </div>
+    <div v-if="formattedData">
+      <h2>Formatted Data</h2>
+      <div class="accordion">
+        <div v-for="(item, index) in formattedData" :key="index" class="accordion-item">
+          <button class="accordion-button" @click="toggleAccordion(index)">
+            {{ item.title }}
+          </button>
+          <div class="accordion-content" :class="{ active: activeIndex === index }">
+            <p>{{ item.content }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
-  name: 'App'
+  name: 'App',
+  data() {
+    return {
+      internalText: '',
+      selectedFile: null,
+      rawJson: '',
+      formattedData: [],
+      activeIndex: null
+    }
+  },
+  mounted() {
+    this.fetchInternalText()
+  },
+  methods: {
+    async fetchInternalText() {
+      try {
+        const response = await axios.get('/api/internal')
+        this.internalText = response.data.text
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onFileChange(event) {
+      this.selectedFile = event.target.files[0]
+    },
+    async submitForm() {
+      const formData = new FormData()
+      formData.append('file', this.selectedFile)
+      try {
+        const response = await axios.post('/api/process', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        this.rawJson = JSON.stringify(response.data, null, 2)
+        // Assume response.data is the JSON from Gemini
+        this.formattedData = response.data // if it's array
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    toggleAccordion(index) {
+      this.activeIndex = this.activeIndex === index ? null : index
+    }
+  }
 }
 </script>
 
@@ -17,6 +85,35 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin: 60px;
+}
+
+textarea {
+  width: 100%;
+  height: 200px;
+  margin-bottom: 20px;
+}
+
+.accordion-item {
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.accordion-button {
+  background: #f1f1f1;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.accordion-content {
+  display: none;
+  padding: 10px;
+}
+
+.accordion-content.active {
+  display: block;
 }
 </style>

@@ -1,0 +1,8 @@
+---
+Name: api-routes
+After:
+  - '#rootroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    'api/$Action': 'ApiController'
