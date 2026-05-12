@@ -25,6 +25,7 @@ $request = HTTPRequestBuilder::createFromEnvironment();
 
 // Default application
 $kernel = new CoreKernel(BASE_PATH);
+$kernel->setBootDatabase(false);
 $app = new HTTPApplication($kernel);
 $response = $app->handle($request);
 $response->output();
