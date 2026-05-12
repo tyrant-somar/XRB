@@ -1,0 +1,24 @@
+# Dependencies
+vendor/
+frontend/node_modules/
+
+# Silverstripe cache
+.silverstripe-cache/
+
+# Environment files
+.env
+
+# Generated assets
+public/assets/
+frontend/dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
