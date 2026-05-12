@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <h1>Accountancy Rules Processor</h1>
+    <h2>Prompt text</h2>
     <textarea v-model="internalText" readonly></textarea>
+    <p>
+      Generated from XRB AI Prompt_Rules and Examples.docx:
+      <button @click="downloadOriginal" class="download-btn">Download</button>
+    </p>
     <form @submit.prevent="submitForm">
       <input type="file" @change="onFileChange" accept=".txt,.docx,.pdf" required>
       <button type="submit">Submit</button>
@@ -73,6 +78,21 @@ export default {
     },
     toggleAccordion(index) {
       this.activeIndex = this.activeIndex === index ? null : index
+    },
+    async downloadOriginal() {
+      try {
+        const response = await axios.get('/api/download', { responseType: 'blob' })
+        const url = window.URL.createObjectURL(response.data)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'XRB AI Prompt_Rules and Examples.docx'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error('Download failed:', error)
+      }
     }
   }
 }
@@ -91,7 +111,14 @@ export default {
 textarea {
   width: 100%;
   height: 200px;
+  margin-bottom: 10px;
+}
+
+.download-btn {
+  display: inline-block;
   margin-bottom: 20px;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
 .accordion-item {
