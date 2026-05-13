@@ -183,7 +183,7 @@ class ApiController extends Controller {
 
     private function callGeminiAPI($prompt, $apiKey) {
 
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' . $apiKey;
 
         $data = [
 
