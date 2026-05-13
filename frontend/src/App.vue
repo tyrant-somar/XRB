@@ -9,10 +9,13 @@
     </p>
     <form @submit.prevent="submitForm">
       <input type="file" @change="onFileChange" accept=".txt,.docx,.pdf" required>
-      <button type="submit" :disabled="loading || !selectedFile">Submit</button>
+      <br>
+      <button type="submit" :disabled="loading || !selectedFile">
+        Inflict text and file upon Gemini API
+      </button>
       <span v-if="loading" class="loading-indicator">
         <span class="spinner"></span>
-        Hitting Gemini API...
+        Headbutting Gemini API...
       </span>
     </form>
     <div>
