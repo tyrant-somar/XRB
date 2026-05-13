@@ -22,9 +22,32 @@
       <h2>Response</h2>
       <button @click="loadSample">Populate with sample JSON</button>
     </div>
+    <div v-if="history.length" class="history-section">
+      <h2>
+        Past Responses
+        <button @click="clearHistory" class="clear-btn">Clear all</button>
+      </h2>
+      <ul class="history-list">
+        <li
+          v-for="entry in pagedHistory"
+          :key="entry.id"
+          class="history-entry"
+          @click="loadHistoryEntry(entry)"
+        >
+          <span class="history-filename">{{ entry.filename }}</span>
+          <span class="history-timestamp">{{ entry.timestamp }}</span>
+        </li>
+      </ul>
+      <div class="history-pagination">
+        <button @click="historyPage--" :disabled="historyPage === 1">&laquo; Prev</button>
+        <span>Page {{ historyPage }} of {{ totalHistoryPages }}</span>
+        <button @click="historyPage++" :disabled="historyPage === totalHistoryPages">Next &raquo;</button>
+      </div>
+    </div>
+
     <div v-if="rawJson">
-      <h2>Raw JSON <button @click="wordWrap = !wordWrap" class="wrap-btn">{{ wordWrap ? 'Unwrap' : 'Wrap' }}</button></h2>
-      <pre class="raw-json" :class="{ 'word-wrap': wordWrap }">{{ rawJson }}</pre>
+      <h2>Raw JSON <button @click="wordWrap = !wordWrap" class="wrap-btn">{{ wordWrap ? 'Unwrap' : 'Wrap' }}</button><button @click="showRawJson = !showRawJson" class="wrap-btn">{{ showRawJson ? 'Hide' : 'Show' }}</button></h2>
+      <pre v-if="showRawJson" class="raw-json" :class="{ 'word-wrap': wordWrap }">{{ rawJson }}</pre>
     </div>
     <div v-if="formattedData.length">
       <h2>Formatted Output</h2>
@@ -57,11 +80,25 @@ export default {
       formattedData: [],
       activeIndex: null,
       wordWrap: false,
-      loading: false
+      loading: false,
+      showRawJson: true,
+      history: [],
+      historyPage: 1,
+      historyPageSize: 5
     }
   },
   mounted() {
     this.fetchInternalText()
+    this.loadHistory()
+  },
+  computed: {
+    totalHistoryPages() {
+      return Math.max(1, Math.ceil(this.history.length / this.historyPageSize))
+    },
+    pagedHistory() {
+      const start = (this.historyPage - 1) * this.historyPageSize
+      return this.history.slice(start, start + this.historyPageSize)
+    }
   },
   methods: {
     async fetchInternalText() {
@@ -96,12 +133,41 @@ export default {
         this.rawJson = JSON.stringify(apiData, null, 2)
 
         this.formattedData = apiData.sections || []
+        this.saveToHistory(this.selectedFile.name, apiData)
 
       } catch (error) {
         console.error(error)
       } finally {
         this.loading = false
       }
+    },
+    loadHistory() {
+      try {
+        this.history = JSON.parse(localStorage.getItem('xrb_history') || '[]')
+      } catch {
+        this.history = []
+      }
+    },
+    saveToHistory(filename, data) {
+      const entry = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString(),
+        filename,
+        data
+      }
+      this.history.unshift(entry)
+      localStorage.setItem('xrb_history', JSON.stringify(this.history))
+      this.historyPage = 1
+    },
+    loadHistoryEntry(entry) {
+      this.rawJson = JSON.stringify(entry.data, null, 2)
+      this.formattedData = entry.data.sections || []
+      this.activeIndex = null
+    },
+    clearHistory() {
+      this.history = []
+      localStorage.removeItem('xrb_history')
+      this.historyPage = 1
     },
     toggleAccordion(index) {
       this.activeIndex = this.activeIndex === index ? null : index
@@ -202,6 +268,75 @@ textarea {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.history-section {
+  margin-bottom: 20px;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.history-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.history-entry:last-child {
+  border-bottom: none;
+}
+
+.history-entry:hover {
+  background: #f0f4f8;
+}
+
+.history-filename {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.history-timestamp {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.history-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  margin-top: 6px;
+}
+
+.history-pagination button {
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+.history-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.clear-btn {
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-left: 10px;
+  vertical-align: middle;
+  color: #c0392b;
 }
 
 .accordion-button {
