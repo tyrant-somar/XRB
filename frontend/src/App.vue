@@ -11,19 +11,25 @@
       <input type="file" @change="onFileChange" accept=".txt,.docx,.pdf" required>
       <button type="submit">Submit</button>
     </form>
+    <div>
+      <h2>Response</h2>
+      <button @click="loadSample">Populate with sample JSON</button>
+    </div>
     <div v-if="rawJson">
       <h2>Raw JSON</h2>
-      <pre>{{ rawJson }}</pre>
+      <pre class="raw-json">{{ rawJson }}</pre>
     </div>
-    <div v-if="formattedData">
-      <h2>Formatted Data</h2>
+    <div v-if="formattedData.length">
+      <h2>Formatted Output</h2>
       <div class="accordion">
-        <div v-for="(item, index) in formattedData" :key="index" class="accordion-item">
+        <div v-for="(section, index) in formattedData" :key="index" class="accordion-item">
           <button class="accordion-button" @click="toggleAccordion(index)">
-            {{ item.title }}
+            {{ section.title }}
           </button>
           <div class="accordion-content" :class="{ active: activeIndex === index }">
-            <p>{{ item.content }}</p>
+            <p v-for="(para, i) in section.paragraphs" :key="i">
+              <strong v-if="para.number">{{ para.number }}</strong> {{ para.text }}
+            </p>
           </div>
         </div>
       </div>
@@ -79,6 +85,15 @@ export default {
     toggleAccordion(index) {
       this.activeIndex = this.activeIndex === index ? null : index
     },
+    async loadSample() {
+      try {
+        const response = await axios.get('/api/sample')
+        this.rawJson = JSON.stringify(response.data, null, 2)
+        this.formattedData = response.data.sections || []
+      } catch (error) {
+        console.error('Failed to load sample:', error)
+      }
+    },
     async downloadOriginal() {
       try {
         const response = await axios.get('/api/download', { responseType: 'blob' })
@@ -103,7 +118,6 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin: 60px;
 }
@@ -121,7 +135,15 @@ textarea {
   cursor: pointer;
 }
 
-.accordion-item {
+.raw-json {
+  max-height: 400px;
+  overflow: auto;
+  text-align: left;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
   border: 1px solid #ccc;
   margin-bottom: 5px;
 }

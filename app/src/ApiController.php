@@ -15,7 +15,9 @@ class ApiController extends Controller {
 
         'internal',
 
-        'download'
+        'download',
+
+        'sample'
 
     ];
 
@@ -62,6 +64,20 @@ class ApiController extends Controller {
 
         return $httpResponse;
 
+    }
+
+    public function sample(HTTPRequest $request) {
+        $path = BASE_PATH . '/assets/docs/sample_response.json';
+
+        if (!file_exists($path)) {
+            return $this->httpError(404, 'Sample file not found');
+        }
+
+        $response = new HTTPResponse();
+        $response->setBody(file_get_contents($path));
+        $response->addHeader('Content-Type', 'application/json');
+
+        return $response;
     }
 
     public function download(HTTPRequest $request) {
