@@ -133,19 +133,21 @@ class ApiController extends Controller {
 
                 if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
 
+                    $line = '';
                     foreach ($element->getElements() as $textElement) {
 
                         if ($textElement instanceof \PhpOffice\PhpWord\Element\Text) {
 
-                            $text .= $textElement->getText() . ' ';
+                            $line .= $textElement->getText();
 
                         }
 
                     }
+                    $text .= $line . "\n";
 
                 } elseif ($element instanceof \PhpOffice\PhpWord\Element\Text) {
 
-                    $text .= $element->getText() . ' ';
+                    $text .= $element->getText() . "\n";
 
                 }
 
@@ -153,7 +155,7 @@ class ApiController extends Controller {
 
         }
 
-        return trim($text);
+        return html_entity_decode(trim($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
     }
 
