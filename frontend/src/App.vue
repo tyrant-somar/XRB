@@ -9,15 +9,19 @@
     </p>
     <form @submit.prevent="submitForm">
       <input type="file" @change="onFileChange" accept=".txt,.docx,.pdf" required>
-      <button type="submit">Submit</button>
+      <button type="submit" :disabled="loading">Submit</button>
+      <span v-if="loading" class="loading-indicator">
+        <span class="spinner"></span>
+        Hitting Gemini API...
+      </span>
     </form>
     <div>
       <h2>Response</h2>
       <button @click="loadSample">Populate with sample JSON</button>
     </div>
     <div v-if="rawJson">
-      <h2>Raw JSON</h2>
-      <pre class="raw-json">{{ rawJson }}</pre>
+      <h2>Raw JSON <button @click="wordWrap = !wordWrap" class="wrap-btn">{{ wordWrap ? 'Unwrap' : 'Wrap' }}</button></h2>
+      <pre class="raw-json" :class="{ 'word-wrap': wordWrap }">{{ rawJson }}</pre>
     </div>
     <div v-if="formattedData.length">
       <h2>Formatted Output</h2>
@@ -48,7 +52,9 @@ export default {
       selectedFile: null,
       rawJson: '',
       formattedData: [],
-      activeIndex: null
+      activeIndex: null,
+      wordWrap: false,
+      loading: false
     }
   },
   mounted() {
@@ -67,19 +73,32 @@ export default {
       this.selectedFile = event.target.files[0]
     },
     async submitForm() {
+      console.log('submitting')
       const formData = new FormData()
       formData.append('file', this.selectedFile)
+      this.loading = true
       try {
         const response = await axios.post('/api/process', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         })
-        this.rawJson = JSON.stringify(response.data, null, 2)
+
         // Assume response.data is the JSON from Gemini
-        this.formattedData = response.data // if it's array
+        const fencedJson = response.data.candidates[0].content.parts[0].text
+
+        const match = fencedJson.match(/```(?:json)?\s*([\s\S]*?)```/)
+
+        const apiData = match ? JSON.parse(match[1].trim()) : JSON.parse(fencedJson) 
+
+        this.rawJson = JSON.stringify(apiData, null, 2)
+
+        this.formattedData = apiData.sections || []
+
       } catch (error) {
         console.error(error)
+      } finally {
+        this.loading = false
       }
     },
     toggleAccordion(index) {
@@ -146,6 +165,41 @@ textarea {
   font-size: 0.8rem;
   border: 1px solid #ccc;
   margin-bottom: 5px;
+  white-space: pre;
+}
+
+.raw-json.word-wrap {
+  white-space: pre-wrap;
+}
+
+.wrap-btn {
+  font-size: 0.75rem;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top-color: #2c3e50;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .accordion-button {
