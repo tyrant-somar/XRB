@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <h1>Accountancy Rules Processor</h1>
+    <h1>Spaniel Generator 5000</h1>
     <h2>Prompt text</h2>
     <textarea v-model="internalText" readonly></textarea>
     <p>
-      Generated from XRB AI Prompt_Rules and Examples.docx:
+      Raw text extracted from <strong>XRB AI Prompt_Rules and Examples.docx</strong>: 
       <button @click="downloadOriginal" class="download-btn">Download</button>
     </p>
     <form @submit.prevent="submitForm">
@@ -73,7 +73,6 @@ export default {
       this.selectedFile = event.target.files[0]
     },
     async submitForm() {
-      console.log('submitting')
       const formData = new FormData()
       formData.append('file', this.selectedFile)
       this.loading = true
