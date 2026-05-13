@@ -23,6 +23,8 @@ class ApiController extends Controller {
 
     public function process(HTTPRequest $request) {
 
+        set_time_limit(120);
+
         if (!$request->isPOST()) {
             return $this->httpError(405);
         }
