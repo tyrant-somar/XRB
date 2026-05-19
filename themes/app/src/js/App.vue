@@ -15,7 +15,7 @@
       </button>
       <span v-if="loading" class="loading-indicator">
         <span class="spinner"></span>
-        Headbutting Gemini API...
+        Headbutting Gemini API (this takes a while, make yourself a cuppa) ...
       </span>
     </form>
     <div>
