@@ -4,3 +4,4 @@ Name: api-routes
 SilverStripe\Control\Director:
   rules:
     'api//$Action': 'ApiController'
+    '': 'HomeController'

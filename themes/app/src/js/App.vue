@@ -118,23 +118,16 @@ export default {
       this.loading = true
       try {
         const response = await axios.post('/api/process', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         })
 
-        // Assume response.data is the JSON from Gemini
         const fencedJson = response.data.candidates[0].content.parts[0].text
-
         const match = fencedJson.match(/```(?:json)?\s*([\s\S]*?)```/)
-
-        const apiData = match ? JSON.parse(match[1].trim()) : JSON.parse(fencedJson) 
+        const apiData = match ? JSON.parse(match[1].trim()) : JSON.parse(fencedJson)
 
         this.rawJson = JSON.stringify(apiData, null, 2)
-
         this.formattedData = apiData.sections || []
         this.saveToHistory(this.selectedFile.name, apiData)
-
       } catch (error) {
         console.error(error)
       } finally {
